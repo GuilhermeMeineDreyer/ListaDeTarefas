@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <title>Lista de tarefas profissonal</title>
+</head>
+
+<body>
+    <header>
+        <h1>MINHA LISTA DE TAREFAS</h1>
+        <h3>ORGANIZE A SUA ROTINA</h3>
+    </header>
+
+    <section class="menu">
+        <div class="input-container">
+            <input type="text" id="taskInput" placeholder="Digite uma nova tarefa" class="input">
+            <button type="button" id="addTaskBtn" class="button">
+                ✔️
+            </button>
+            <button type="button" id="clearListBtn" class="button">
+                🗑️
+            </button>
+
+        </div>
+
+        <ul id="taskList"></ul>
+    </section>
+
+
+    <script>
+    const input = document.getElementById("taskInput");
+    const addButton = document.getElementById("addTaskBtn");
+    const clearButton = document.getElementById("clearListBtn");
+    const taskList = document.getElementById("taskList");
+
+    function getTasksFromStorage() {
+        return JSON.parse(localStorage.getItem("tasks")) || [];
+    }
+
+    function saveTasksToStorage(tasks) {
+        localStorage.setItem("tasks", JSON.stringify(tasks));
+    }
+
+    function createTaskElement(text, completed = false) {
+        const li = document.createElement("li");
+
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.checked = completed;
+
+        const span = document.createElement("span");
+        span.textContent = text;
+
+        if (completed) {
+            span.classList.add("completed");
+        }
+
+        checkbox.addEventListener("change", function () {
+            span.classList.toggle("completed", checkbox.checked);
+            updateStorage();
+        });
+
+        li.appendChild(checkbox);
+        li.appendChild(span);
+        taskList.appendChild(li);
+    }
+
+    function updateStorage() {
+        const tasks = [];
+
+        document.querySelectorAll("#taskList li").forEach(li => {
+            const text = li.querySelector("span").textContent;
+            const completed = li.querySelector("input").checked;
+
+            tasks.push({ text, completed });
+        });
+
+        saveTasksToStorage(tasks);
+    }
+
+    addButton.addEventListener("click", function () {
+        const taskText = input.value.trim();
+
+        if (taskText === "") {
+            alert("Digite uma tarefa!");
+            return;
+        }
+
+        createTaskElement(taskText, false);
+
+        const tasks = getTasksFromStorage();
+        tasks.push({ text: taskText, completed: false });
+        saveTasksToStorage(tasks);
+
+        input.value = "";
+    });
+
+    // ENTER adiciona tarefa
+    input.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") {
+            addButton.click();
+        }
+    });
+
+    clearButton.addEventListener("click", function () {
+        const tasks = [];
+
+        document.querySelectorAll("#taskList li").forEach(li => {
+            const checkbox = li.querySelector("input");
+
+            if (checkbox.checked) {
+                li.remove();
+            } else {
+                const text = li.querySelector("span").textContent;
+                tasks.push({ text, completed: false });
+            }
+        });
+
+        saveTasksToStorage(tasks);
+    });
+
+    const savedTasks = getTasksFromStorage();
+    savedTasks.forEach(task => {
+        createTaskElement(task.text, task.completed);
+    });
+</script>
+
+
+</body>
+</html>
